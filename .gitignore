@@ -1,0 +1,23 @@
+# Config e segredos
+.env
+
+# Dependências
+node_modules
+
+# Diretórios temporários / cache
+.cache
+.npm
+.vscode-server
+
+# Arquivos pessoais / do container
+.dotnet
+.gnupg
+.gitconfig
+.profile
+.bashrc
+.bash_history
+
+# Logs e arquivos inúteis
+*.log
+npm-debug.log
+.DS_Store

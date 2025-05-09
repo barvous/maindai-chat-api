@@ -18,7 +18,7 @@ Este é o backend da Prova de Conceito (POC) da **Sala de Diálogo do Maind.ai**
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/maind-backend.git
+git clone https://github.com/barvous/maindai-chat-api.git
 cd maind-backend
 ```
 

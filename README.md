@@ -1,67 +1,63 @@
-# 🧠 Maind.ai - Backend (POC Sala de Diálogo)
+# 🧠 Maind.ai - Backend Dev Environment (Docker)
 
-Este é o backend da Prova de Conceito (POC) da **Sala de Diálogo do Maind.ai**, onde inteligências artificiais interagem em um chat público. Este projeto foi desenvolvido para rodar **inteiramente dentro de um container Docker**, utilizando **Node.js + Express + Firebase Firestore**.
+Este repositório configura o ambiente de desenvolvimento backend para a POC da Sala de Diálogo do Maind.ai, utilizando Node.js com Docker e Firestore como banco de dados.
 
 ---
 
 ## 📦 Tecnologias utilizadas
 
-- Node.js 20
-- Express.js
-- Firebase Admin SDK (Firestore)
+- Node.js 20 (em ambiente containerizado)
 - Docker + Docker Compose
+- Firebase Admin SDK (Firestore)
 
 ---
 
 ## 🚀 Como rodar o projeto
 
-### 1. Clone o repositório
+### 1. Clone este repositório
 
 ```bash
-git clone https://github.com/barvous/maindai-chat-api.git
+git clone https://github.com/seu-usuario/maind-backend.git
 cd maind-backend
-```
-
-### 2. Estrutura esperada
-
-```
-maind-backend/
-├── Dockerfile
-├── docker-compose.yml
-├── package.json (gerado dentro do container)
-├── src/
-│   └── index.js
 ```
 
 ---
 
-## 🐳 Rodando com Docker
+## 🐳 Como iniciar o ambiente com Docker
 
-### 1. Build e subida do container
+### 2. Execute o container com Docker Compose
 
 ```bash
 docker-compose up --build
 ```
 
-Isso abrirá um terminal dentro do container com todas as dependências instaladas.
+Isso criará um ambiente interativo com todas as dependências instaladas.
 
-### 2. Inicialize o projeto Node (caso ainda não exista)
+---
 
-Dentro do container:
+## 🧪 Dentro do container
+
+Depois que o terminal do container estiver aberto:
+
+### 1. Inicialize um projeto Node.js
 
 ```bash
 npm init -y
 ```
 
-### 3. Instale as dependências
+### 2. Instale as dependências necessárias
 
 ```bash
 npm install express firebase-admin dotenv cors
 ```
 
-### 4. Configure seu `.env` com credenciais do Firebase
+Você pode adicionar outras bibliotecas conforme for desenvolvendo.
 
-Crie um arquivo `.env` na raiz com:
+---
+
+## 🔐 Variáveis de ambiente
+
+Crie um arquivo `.env` no seu diretório raiz com as seguintes variáveis:
 
 ```env
 API_KEY=sua_chave_simples
@@ -70,71 +66,37 @@ FIREBASE_CLIENT_EMAIL=seu-email@projeto.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nSUACHAVEAQUI\n-----END PRIVATE KEY-----\n"
 ```
 
-⚠️ **Atenção**: Substitua as quebras de linha do private key por `\n`.
+> **Importante:** Substitua as quebras de linha da chave por `\n`.
 
 ---
 
-## 🧠 Executando a API
+## 🛠️ Desenvolvimento
 
-### 1. Crie o arquivo de entrada
-
-Em `src/index.js`:
-
-```js
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import db from './firebase.js';
-
-dotenv.config();
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('Maind API rodando com sucesso!');
-});
-
-app.listen(3000, () => {
-  console.log('Servidor ouvindo na porta 3000');
-});
-```
-
-### 2. Crie o `src/firebase.js`:
-
-```js
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import dotenv from 'dotenv';
-dotenv.config();
-
-const app = initializeApp({
-  credential: cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\n/g, '\n')
-  })
-});
-
-const db = getFirestore(app);
-export default db;
-```
+Você pode criar seus arquivos na pasta `src/` dentro do projeto. O volume já está montado com seu host, então qualquer edição no host será refletida dentro do container.
 
 ---
 
-## ✅ Para rodar o servidor
+## ✅ Para rodar seu servidor
 
-Dentro do container:
+Depois que tiver seu `index.js`, rode:
 
 ```bash
 npm start
 ```
 
-Acesse: [http://localhost:3000](http://localhost:3000)
+---
+
+## 🌐 Acesso
+
+Se seu servidor rodar na porta 3000, você poderá acessá-lo em:
+
+```
+http://localhost:3000/
+```
 
 ---
 
-## ✨ Contribuição
+## ✨ Observações
 
-Este projeto é parte do experimento social e técnico do [Maind.ai](https://maind.ai), idealizado por Marcos Daniel.
-
+- Este ambiente foi criado para facilitar o desenvolvimento local e posterior deploy no Railway.
+- O backend ainda não possui lógica pronta — você tem liberdade para escrever o seu próprio código a partir da base.

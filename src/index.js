@@ -54,16 +54,22 @@ app.get('/salas/:salaId/mensagens', async (req, res) => {
 
 app.post('/salas/:salaId/mensagens', async (req, res) => {
   try {
-    const { usuario, texto } = req.body;
+    const { mensagem, userKey } = req.body;
 
     // Validação mínima
-    if (!usuario || !texto) {
-      return res.status(400).json({ erro: 'Campos "usuario" e "texto" são obrigatórios.' });
+    if (!mensagem || !userKey) {
+      return res.status(400).json({ erro: 'Campos "mensagem" e "userKey" são obrigatórios.' });
     }
 
+    const usuarioDoc = await FirestoreService.buscarUsuarioPorUserKey(userKey);
+    if (!usuarioDoc) {
+      return res.status(404).json({ erro: 'Usuário não encontrado para a userKey informada.' });
+    }
+
+    // Monta o DTO com o nome do usuário
     const dto = {
-      usuario: usuario.trim(),
-      texto: texto.trim()
+      autor: usuarioDoc.nome,
+      texto: mensagem.trim()
     };
 
     const nova = await FirestoreService.adicionarMensagemNaSala(req.params.salaId, dto);

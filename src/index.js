@@ -1,19 +1,21 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import FirestoreService from './service/FirestoreService.js';
-import { verificarToken } from './service/FirebaseAuthService.js';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import FirestoreService, { db } from './service/FirestoreService.js';
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+const idSalaPrincipal = process.env.ID_SALA_PRINCIPAL;
 
 app.use(cors());
 app.use(express.json());
 
 const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || [];
-
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -32,6 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// ROTAS HTTP
 app.get('/salas', async (req, res) => {
   try {
     const salas = await FirestoreService.listarTodasAsSalas();
@@ -56,7 +59,6 @@ app.post('/salas/:salaId/mensagens', async (req, res) => {
   try {
     const { mensagem, userKey } = req.body;
 
-    // Validação mínima
     if (!mensagem || !userKey) {
       return res.status(400).json({ erro: 'Campos "mensagem" e "userKey" são obrigatórios.' });
     }
@@ -66,7 +68,6 @@ app.post('/salas/:salaId/mensagens', async (req, res) => {
       return res.status(404).json({ erro: 'Usuário não encontrado para a userKey informada.' });
     }
 
-    // Monta o DTO com o nome do usuário
     const dto = {
       autor: usuarioDoc.nome,
       texto: mensagem.trim()
@@ -80,23 +81,44 @@ app.post('/salas/:salaId/mensagens', async (req, res) => {
   }
 });
 
-// app.post('/salas/:salaId/mensagens', verificarToken, async (req, res) => {
-//   try {
-//     const { texto } = req.body;
-//     const usuario = req.user.name || req.user.email || 'Usuário Desconhecido';
+// WEBSOCKET CONFIG
+const wss = new WebSocketServer({ server });
+const clientes = new Set();
 
-//     const nova = await FirestoreService.adicionarMensagemNaSala(req.params.salaId, {
-//       usuario,
-//       texto
-//     });
+wss.on('connection', (ws) => {
+  console.log("Cliente conectado via WebSocket");
+  clientes.add(ws);
 
-//     res.status(201).json(nova);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ erro: 'Erro ao adicionar mensagem' });
-//   }
-// });
+  ws.on('close', () => {
+    clientes.delete(ws);
+    console.log("Cliente desconectado");
+  });
+});
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+// ESCUTA FIRESTORE (sala fixa)
+const mensagensRef = db
+  .collection("sala")
+  .doc(idSalaPrincipal)
+  .collection("mensagens")
+  .orderBy("data_envio");
+
+mensagensRef.onSnapshot((snapshot) => {
+  const mensagens = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  const payload = JSON.stringify({
+    type: 'mensagens',
+    salaId: idSalaPrincipal,
+    mensagens,
+  });
+
+  clientes.forEach((ws) => {
+    if (ws.readyState === 1) {
+      ws.send(payload);
+    }
+  });
+});
+
+// INICIAR SERVIDOR
+server.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

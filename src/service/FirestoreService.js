@@ -91,3 +91,4 @@ const FirestoreService = {
 };
 
 export default FirestoreService;
+export { db };
